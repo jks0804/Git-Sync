@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitSyncd — Repo Sync Manager</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/>
+        </svg>
+        <span class="brand-name">GitSyncd</span>
+        <span class="brand-tag">Repo Sync Manager</span>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Sync
+      </button>
+    </header>
+
+    <main class="main">
+      <div id="empty-state" class="empty-state hidden">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+          <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/>
+        </svg>
+        <p class="empty-title">No sync configurations yet</p>
+        <p class="empty-sub">Click <strong>Add Sync</strong> to create your first repo sync.</p>
+      </div>
+
+      <div id="configs-grid" class="configs-grid"></div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModalIfOutside(event)">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Sync Configuration</h2>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="config-form" onsubmit="submitConfigForm(event)">
+        <input type="hidden" id="edit-id" value="" />
+        <div class="form-group">
+          <label for="f-name">Name</label>
+          <input type="text" id="f-name" placeholder="e.g. Mirror main to backup" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-source-url">Source Repo URL</label>
+            <input type="text" id="f-source-url" placeholder="https://github.com/org/repo.git" required />
+          </div>
+          <div class="form-group form-group-sm">
+            <label for="f-source-branch">Branch</label>
+            <input type="text" id="f-source-branch" placeholder="main" value="main" />
+          </div>
+        </div>
+        <div class="arrow-divider">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="f-dest-url">Destination Repo URL</label>
+            <input type="text" id="f-dest-url" placeholder="https://github.com/org/backup.git" required />
+          </div>
+          <div class="form-group form-group-sm">
+            <label for="f-dest-branch">Branch</label>
+            <input type="text" id="f-dest-branch" placeholder="main" value="main" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="f-schedule">
+            Schedule
+            <span class="label-hint">(optional — cron expression, e.g. <code>0 * * * *</code> for hourly)</span>
+          </label>
+          <input type="text" id="f-schedule" placeholder="0 * * * *  or leave blank for manual only" />
+          <div class="cron-presets">
+            <span class="preset-label">Presets:</span>
+            <button type="button" class="preset-btn" onclick="setCron('0 * * * *')">Hourly</button>
+            <button type="button" class="preset-btn" onclick="setCron('0 0 * * *')">Daily</button>
+            <button type="button" class="preset-btn" onclick="setCron('0 0 * * 0')">Weekly</button>
+            <button type="button" class="preset-btn" onclick="setCron('')">None</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="form-submit-btn">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Logs Modal -->
+  <div id="logs-overlay" class="modal-overlay hidden" onclick="closeLogsIfOutside(event)">
+    <div class="modal modal-wide" role="dialog">
+      <div class="modal-header">
+        <h2 id="logs-title">Sync Logs</h2>
+        <button class="modal-close" onclick="closeLogs()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="logs-list" class="logs-list"></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

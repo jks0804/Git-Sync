@@ -1,0 +1,22 @@
+kind = "web"
+previewPath = "/"
+title = "Git Repo Sync"
+version = "1.0.0"
+id = "artifacts/git-sync"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20652
+
+[services.development]
+run = "cd /home/runner/workspace/artifacts/git-sync/backend && pip install -r requirements.txt -q && python app.py"
+
+[services.env]
+PORT = "20652"
+BASE_PATH = "/"
