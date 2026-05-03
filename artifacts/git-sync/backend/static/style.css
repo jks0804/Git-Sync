@@ -909,3 +909,82 @@ textarea::placeholder { color: var(--text-subtle); }
 }
 
 .code-comment { color: var(--text-subtle); }
+
+/* ── Settings modal ──────────────────────────────────────────────────────── */
+.icon-btn {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-body { padding: 0 22px 22px; }
+
+.settings-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-subtle);
+  padding-top: 20px;
+  margin-bottom: 6px;
+}
+
+.settings-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.settings-url-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-url-preview {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-subtle);
+  padding: 4px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-url-preview::before {
+  content: "→ ";
+  color: var(--text-subtle);
+  opacity: 0.5;
+}
+
+.settings-same-row {
+  margin-top: 14px;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+.settings-url-row input:focus + .settings-url-preview,
+.settings-url-row input:not(:placeholder-shown) + .settings-url-preview {
+  display: block;
+}

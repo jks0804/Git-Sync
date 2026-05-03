@@ -21,6 +21,9 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Sync
         </button>
+        <button class="btn btn-ghost icon-btn" onclick="openSettings()" title="Settings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
         <div class="user-menu" id="user-menu">
           <button class="user-btn" onclick="toggleUserMenu()" id="user-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -161,6 +164,53 @@
           <button type="submit" class="btn btn-primary" id="form-submit-btn">Create</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-overlay" class="modal-overlay hidden" onclick="closeSettingsIfOutside(event)">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width:500px">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button class="modal-close" onclick="closeSettings()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="settings-body">
+
+        <div class="settings-section-title">Default Git Instances</div>
+        <p class="settings-desc">Set default base URLs for your git hosts. These will pre-fill the URL fields whenever you create a new sync, so you only need to type the repo path.</p>
+
+        <div class="form-group" style="margin-top:14px">
+          <label for="s-default-source">Default Source URL</label>
+          <div class="settings-url-row">
+            <input type="text" id="s-default-source" placeholder="e.g. https://github.com" autocomplete="off" spellcheck="false" />
+            <div class="settings-url-preview" id="s-source-preview"></div>
+          </div>
+          <span class="label-hint">e.g. <code>https://github.com</code> or <code>https://gitlab.company.com</code></span>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+          <label for="s-default-dest">Default Destination URL</label>
+          <div class="settings-url-row">
+            <input type="text" id="s-default-dest" placeholder="e.g. https://gitlab.company.com" autocomplete="off" spellcheck="false" />
+            <div class="settings-url-preview" id="s-dest-preview"></div>
+          </div>
+          <span class="label-hint">Leave blank to use the same as source</span>
+        </div>
+
+        <div class="settings-same-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="s-same-instance" onchange="toggleSameInstance()" />
+            Use same instance for source and destination
+          </label>
+        </div>
+
+        <div class="modal-footer" style="margin-top:20px">
+          <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveSettings()" id="settings-save-btn">Save</button>
+        </div>
+      </div>
     </div>
   </div>
 

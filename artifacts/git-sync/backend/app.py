@@ -41,6 +41,10 @@ def get_db():
 def init_db():
     conn = get_db()
     conn.executescript("""
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
@@ -521,6 +525,40 @@ def delete_config(config_id):
     conn.commit()
     conn.close()
     return jsonify({"ok": True})
+
+
+# ── Settings ──────────────────────────────────────────────────────────────────
+
+@app.route("/v1/settings", methods=["GET"])
+@login_required
+def get_settings():
+    conn = get_db()
+    rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    conn.close()
+    return jsonify({r["key"]: r["value"] for r in rows})
+
+
+@app.route("/v1/settings", methods=["PUT"])
+@login_required
+def update_settings():
+    data = request.get_json(force=True)
+    allowed_keys = {"default_source_url", "default_dest_url"}
+    conn = get_db()
+    for key, value in data.items():
+        if key not in allowed_keys:
+            continue
+        value = (value or "").strip().rstrip("/")
+        if value:
+            conn.execute(
+                "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                (key, value),
+            )
+        else:
+            conn.execute("DELETE FROM settings WHERE key = ?", (key,))
+    conn.commit()
+    rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    conn.close()
+    return jsonify({r["key"]: r["value"] for r in rows})
 
 
 # ── Webhook management (authenticated) ───────────────────────────────────────

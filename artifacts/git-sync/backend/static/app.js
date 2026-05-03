@@ -177,6 +177,98 @@ function switchAuthTab(tab) {
   document.getElementById("tab-https").classList.toggle("active", tab === "https");
 }
 
+// ── Settings ──────────────────────────────────────────────────────────────────
+let _appSettings = {};
+
+async function loadSettings() {
+  try {
+    _appSettings = await apiFetch("/settings");
+    syncSameCheckbox();
+  } catch (e) {
+    _appSettings = {};
+  }
+}
+
+function openSettings() {
+  document.getElementById("s-default-source").value = _appSettings.default_source_url || "";
+  document.getElementById("s-default-dest").value = _appSettings.default_dest_url || "";
+  syncSameCheckbox();
+  updateSourcePreview();
+  updateDestPreview();
+  document.getElementById("settings-overlay").classList.remove("hidden");
+  document.getElementById("s-default-source").focus();
+}
+
+function closeSettings() {
+  document.getElementById("settings-overlay").classList.add("hidden");
+}
+
+function closeSettingsIfOutside(e) {
+  if (e.target === document.getElementById("settings-overlay")) closeSettings();
+}
+
+function syncSameCheckbox() {
+  const src = (document.getElementById("s-default-source")?.value || _appSettings.default_source_url || "").trim();
+  const dst = (document.getElementById("s-default-dest")?.value || _appSettings.default_dest_url || "").trim();
+  const checkbox = document.getElementById("s-same-instance");
+  if (checkbox) checkbox.checked = !dst || dst === src;
+}
+
+function toggleSameInstance() {
+  const checked = document.getElementById("s-same-instance").checked;
+  const destEl = document.getElementById("s-default-dest");
+  if (checked) {
+    destEl.value = document.getElementById("s-default-source").value;
+    destEl.disabled = true;
+    updateDestPreview();
+  } else {
+    destEl.disabled = false;
+    destEl.focus();
+  }
+}
+
+function updateSourcePreview() {
+  const val = (document.getElementById("s-default-source")?.value || "").trim().replace(/\/$/, "");
+  const el = document.getElementById("s-source-preview");
+  if (!el) return;
+  el.textContent = val ? `${val}/org/repo.git` : "";
+  el.style.display = val ? "block" : "none";
+  if (document.getElementById("s-same-instance")?.checked) {
+    document.getElementById("s-default-dest").value = val;
+    updateDestPreview();
+  }
+}
+
+function updateDestPreview() {
+  const val = (document.getElementById("s-default-dest")?.value || "").trim().replace(/\/$/, "");
+  const el = document.getElementById("s-dest-preview");
+  if (!el) return;
+  el.textContent = val ? `${val}/org/repo.git` : "";
+  el.style.display = val ? "block" : "none";
+}
+
+async function saveSettings() {
+  const btn = document.getElementById("settings-save-btn");
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  const src = document.getElementById("s-default-source").value.trim().replace(/\/$/, "");
+  let dst = document.getElementById("s-default-dest").value.trim().replace(/\/$/, "");
+  if (document.getElementById("s-same-instance").checked) dst = src;
+  try {
+    _appSettings = await apiFetch("/settings", {
+      method: "PUT",
+      body: JSON.stringify({ default_source_url: src, default_dest_url: dst }),
+    });
+    toast("Settings saved", "success");
+    closeSettings();
+  } catch (e) {
+    toast("Failed to save: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save";
+  }
+}
+
 // Modal - Add/Edit
 function openAddModal() {
   document.getElementById("modal-title").textContent = "Add Sync Configuration";
@@ -188,7 +280,24 @@ function openAddModal() {
   document.getElementById("pw-saved-badge").classList.add("hidden");
   document.getElementById("ssh-key-status").classList.add("hidden");
   switchAuthTab("ssh");
+
+  // Pre-fill URL fields from default settings
+  const srcDefault = _appSettings.default_source_url || "";
+  const dstDefault = _appSettings.default_dest_url || "";
+  const srcEl = document.getElementById("f-source-url");
+  const dstEl = document.getElementById("f-dest-url");
+  if (srcDefault) {
+    srcEl.value = srcDefault + "/";
+    srcEl.placeholder = `${srcDefault}/org/repo.git`;
+  }
+  if (dstDefault) {
+    dstEl.value = dstDefault + "/";
+    dstEl.placeholder = `${dstDefault}/org/repo.git`;
+  }
+
   document.getElementById("modal-overlay").classList.remove("hidden");
+  // Focus at end of pre-filled value
+  if (srcDefault) { srcEl.focus(); srcEl.setSelectionRange(srcEl.value.length, srcEl.value.length); }
 }
 
 async function openEditModal(id) {
@@ -515,8 +624,11 @@ async function copyWhSecret() {
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { closeModal(); closeLogs(); closePw(); closeWh(); }
+  if (e.key === "Escape") { closeModal(); closeLogs(); closePw(); closeWh(); closeSettings(); }
 });
+
+document.getElementById("s-default-source").addEventListener("input", updateSourcePreview);
+document.getElementById("s-default-dest").addEventListener("input", updateDestPreview);
 
 // Load user info
 async function initUser() {
@@ -529,4 +641,4 @@ async function initUser() {
 
 setInterval(loadConfigs, 10000);
 initUser();
-loadConfigs();
+loadSettings().then(loadConfigs);
